@@ -1,0 +1,1 @@
+Cm,Bbm,Adim,Cm,Bdim,Dm,Fdim,Cm,Bbdim,Bdim,Fdim,Edim,Cdim,C#dim,Gdim,F#dim,Gm,C,Eb,Fdim,F#dim,Cdim,Bdim,Bbdim,Bdim,Fdim,Edim,Ebdim,Edim,Bbdim,Adim,Cdim,C#dim,Gdim,F#dim,Gm,Bbdim,Bdim,Edim,Fm,Edim,Gm,F#dim,Am,F,Bdim,Edim,Cm,G#dim,Cm,Bdim,Fm6,Bbm,Bdim,Fm,Bdim,Cm,Bdim,G#,Fm,Bb,Fm,Bbm,Adim,Cm,Bdim,Dm,Fdim,Cm,Bbdim,Bdim,Fdim,Edim,Cdim,C#dim,Gdim,F#dim,Bdim,G,G#,F,Gm,G#,G
