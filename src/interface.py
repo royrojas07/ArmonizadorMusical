@@ -64,13 +64,14 @@ def buttonActions(msg):
         pygame.quit()
         quit()
     if msg == "Start":
-        prueba = Graph("prueba.txt")
-        prueba.print_graph()
+        prueba = Graph(0,"prueba.txt")
         print("--------------------------------")
         prueba.training("cancion.txt")
         prueba.print_graph()
+        prueba.save_graph_to_json()
     if msg == "Choose graph":
-        print(msg)
+    	prueba = Graph(1, "classical.json")
+    	prueba.print_graph()
     if msg == "Training":
         print(msg)
 		
