@@ -2,8 +2,11 @@ class Chord:
     def __init__( self, name, value=None ):
         self.name = name
         self.root_notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-        self.root_notes_values = {'C':1, 'C#':2, 'Db':2, 'D':3, 'D#':4, 'Eb':4,
-                'E':5, 'F':6, 'F#':7, 'Gb':7, 'G':8, 'G#':9, 'Ab':9, 'A':10, 'A#':11, 'Bb':11, 'B':12}
+        #self.root_notes_values = {'C':1, 'C#':2, 'Db':2, 'D':3, 'D#':4, 'Eb':4,
+        #        'E':5, 'F':6, 'F#':7, 'Gb':7, 'G':8, 'G#':9, 'Ab':9, 'A':10, 'A#':11, 'Bb':11, 'B':12}
+
+        self.root_notes_values = {'B#':1,'C':1, 'C#':2, 'Db':2, 'D':3, 'D#':4, 'Eb':4,'E':5,'Fb':5,'E#':6, 'F':6, 
+                                    'F#':7, 'Gb':7, 'G':8, 'G#':9, 'Ab':9, 'A':10, 'A#':11, 'Bb':11, 'B':12,'Cb':12}
         if value == None:
             self.value = self.chord_value( name )
         else:
@@ -12,7 +15,7 @@ class Chord:
     def get_name( self ):
         return self.name
     
-    def set_name( self, nname ):
+    def set_name( self, nname):
         self.name = nname
 
     def get_value( self ):
@@ -43,9 +46,11 @@ class Chord:
         value = 0
         if chord[0].upper() in self.root_notes:
             if ( len( chord ) > 1 ) and ( chord[1].lower() in ['#', 'b'] ):
-                value = self.root_notes_values[chord[0:2]]
+                #chord_upper = chord[0:2]
+                #value = self.root_notes_values[chord[0:2]]
+                value = self.root_notes_values[chord[0].upper() + chord[1]]
             else:
-                value = self.root_notes_values[chord[0]]
+                value = self.root_notes_values[chord[0].upper()]
         return value
 
     def __sub__( self, semitones ):
@@ -78,14 +83,18 @@ class ScaleConversor:
     def convert( self, song ):
         chord_list = []
         song_base_note = song[0]
-        chord_sequence_str = song[1:]
+        #chord_sequence_str = song[1:]
+        chord_sequence_str = song[:]
 
         for chord in chord_sequence_str:
-            if chord[0].upper() in self.notes:
+            #if chord[0].upper() in self.notes:
+            if chord[0].upper() in self.notes and len( chord ) > 0:
                 chord_list.append( Chord( chord ) )
+
         
         if song_base_note != self.base_note: # otherwise conversion is not necessary
             return self.convert_chord_sequence( song_base_note, chord_list )
+
         return chord_list
     
     def convert_chord_sequence( self, base_note, sequence ):
