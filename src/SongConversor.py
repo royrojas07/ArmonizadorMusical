@@ -96,6 +96,8 @@ def convert_song (song_file_name, base_note = 'C',conversion_file = '', id_optio
                 converted_song.append (converted_chord)
 
     #le cambia la escala a la cancion
+    #TODO Todo por ahora no le cambia la escala con la opcion de id
+    #TODO Hacer que convierta escala con los ids
     if (not id_option): 
         converted_scale_song = []
         for chord in scale_conv.convert(converted_song):
