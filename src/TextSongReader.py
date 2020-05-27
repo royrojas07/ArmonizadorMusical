@@ -1,3 +1,8 @@
+import os    
+
+default_dir_linux = './Canciones/TXT Acordes/Clásica/'
+default_dir_windows = ''
+
 class TextSongReader:
     def __init__( self, delimiter=',' ):
         self.delimiters = ['\n', ' ']
@@ -14,6 +19,7 @@ class TextSongReader:
         song_file = open( song_file_name )
         content = song_file.read()
         return self.split( content )
+
 
     def split( self, string ):
         """
@@ -37,3 +43,19 @@ class TextSongReader:
             splitted_string.append( string[i:j+1] )
         
         return splitted_string
+
+    def read_dir (self, song_dir_name = default_dir_linux):
+        """
+        Splits a string by some delimiters
+        @type song_dir_name: str
+        @param song_dir_name: directory of files
+        @rtype: list
+        @return: list of files in dir
+        """ 
+        file_list = []
+        for root, directories, files in os.walk(song_dir_name):
+            print('Found directory: %s' % root)
+            for f in files:
+                file_list.append(f)
+
+        return file_list

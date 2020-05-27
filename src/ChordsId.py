@@ -58,8 +58,8 @@ Chord_Variations = {
 def get_chord_id(chord_str_input):
     """
     gets chord id from a chord name
-    @type chord: str
-    @param chord: chord name
+    @type chord_str_input: str
+    @param chord_str_input: chord name
     @rtype: int
     @return: chord id
     """
@@ -70,17 +70,18 @@ def get_chord_id(chord_str_input):
     chord_variation = ''
 
     #Este if y else determina si el acorde es valido
-    if (len( chord_str ) > 1 ) and ( chord_str[1] in ['#', 'b']) :
-        base_note = chord_str[0].upper() + chord_str[1]
+    if len( chord_str ) > 0:
+        if (len( chord_str ) > 1 ) and ( chord_str[1] in ['#', 'b']) :
+            base_note = chord_str[0].upper() + chord_str[1]
 
-        if len( chord_str ) > 2:
-            chord_variation = chord_str[2:].lower()
-    else: 
-        base_note = chord_str[0].upper()
-        if len( chord_str ) > 1:
-            chord_variation = chord_str[1:].lower()
+            if len( chord_str ) > 2:
+                chord_variation = chord_str[2:].lower()
+        else: 
+            base_note = chord_str[0].upper()
+            if len( chord_str ) > 1:
+                chord_variation = chord_str[1:].lower()
 
-    #si es valido su id es esa formula
+    #si es valido su id en esa formula
     if base_note in Chord_Notes and chord_variation in Chord_Variations: 
         value = ((Chord_Notes[base_note] * 100)) + Chord_Variations[chord_variation]
 
@@ -89,8 +90,8 @@ def get_chord_id(chord_str_input):
 def get_chord_name(chord_id):
     """
     Gets the chord name from its id
-    @type chord: int
-    @param chord: chord_id
+    @type chord_id: int
+    @param chord_id: chord_id
     @rtype: str
     @return: chord_str
     """
@@ -124,3 +125,37 @@ def get_chord_name(chord_id):
         chord_str = base_note_key + variation_key
 
     return chord_str
+
+def is_chord_valid(chord_str_input):
+    """
+    determines if chord is valid
+    @type chord_str_input: str
+    @param chord_str_input: chord name
+    @rtype: bool
+    @return: chord validity
+    """
+    is_valid = False
+    chord_str = chord_str_input.strip()
+
+    base_note = ''
+    chord_variation = ''
+
+    #Este if y else separa string del acorde en su base note y variacion
+    if len( chord_str ) > 0:
+        if (len( chord_str ) > 1 ) and ( chord_str[1] in ['#', 'b']) :
+            base_note = chord_str[0].upper() + chord_str[1]
+
+            if len( chord_str ) > 2:
+                chord_variation = chord_str[2:].lower()
+        else: 
+            base_note = chord_str[0].upper()
+            if len( chord_str ) > 1:
+                chord_variation = chord_str[1:].lower()
+        
+    
+
+    #determina si el acorde es valido
+    if base_note in Chord_Notes and chord_variation in Chord_Variations: 
+        is_valid = True
+
+    return is_valid

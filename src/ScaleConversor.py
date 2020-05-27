@@ -73,7 +73,8 @@ class Chord:
         return ( self.value == other_chord.value ) and ( self.name == other_chord.name )
     
     def __str__( self ):
-        return "(%s, %d)" % ( self.name, self.value )
+        #return "(%s, %d)" % ( self.name, self.value )
+        return "%s" % ( self.name)
 
 class ScaleConversor:
     def __init__( self, base_note ):
