@@ -65,7 +65,7 @@ def convert_song (song_file_name, base_note = 'C',conversion_file = '', id_optio
 
     """
     converts chord depending on the conversion table
-    @type song_dir_name: str
+    @type song_file_name: str
     @param song_file_name: specifies the song file name
     @type base_note: str
     @param base_note: specifies the base note to convert to
@@ -81,30 +81,20 @@ def convert_song (song_file_name, base_note = 'C',conversion_file = '', id_optio
     #obtiene el contenido de la cancion
     song_content = songReader.read(song_file_name)
     
-    #lista de canciones con en donde cada cancion tiene sus acordes por id de acorde
+    returned_song = []
     
-    converted_song = []
-    
-    for chord in song_content:
+    #le cambia la escala a la cancion 
+    converted_scale_song = []
+    converted_song = scale_conv.convert(song_content)
+    for chord in converted_song:
+        converted_scale_song.append(str(chord))
+
+    for chord in converted_scale_song:
         if is_chord_valid(chord):
-            converted_chord = convert_chord (chord, conversion_file)
-            #TODO puede ser que desde que aqui se convierta la escala de la cancion
-            if (not id_option): 
-                converted_chord_str = get_chord_name(converted_chord)
-                converted_song.append (converted_chord_str)
+            if id_option:
+                converted_chord = convert_chord (chord, conversion_file)
+                returned_song.append(converted_chord)
             else:
-                converted_song.append (converted_chord)
-
-    #le cambia la escala a la cancion
-    #TODO Todo por ahora no le cambia la escala con la opcion de id
-    #TODO Hacer que convierta escala con los ids
-    if (not id_option): 
-        converted_scale_song = []
-        for chord in scale_conv.convert(converted_song):
-            converted_scale_song.append(str(chord))
-        returned_song = converted_scale_song
-    else: 
-        returned_song =  converted_song
-
+                returned_song = converted_scale_song
 
     return returned_song
