@@ -16,3 +16,4 @@ Si el profesor Markus o alguien más desea ver un ejemplo de una canción creada
         1.  Ingresar la cantidad de acordes que quiere que tenga la canción, por ejemplo 30 o 50.
         1.  Se desplegará una canción creada usando el grafo con Cadenas de Markov.
         
+ La otra opción del menú genera un grafo nuevo con su archivo .json y lo selecciona automáticamente, le pide al usuario el nombre que le quiere dar al grafo y por ende al archivo.
