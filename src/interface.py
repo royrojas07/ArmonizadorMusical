@@ -1,7 +1,11 @@
 #librerias que se importan
 import pygame 
 import time
+import textwrap
 from chordsGraph import *
+from ChordsId import *
+from TextSongReader import *
+from SongConversor import *
 
 
 #inicializa todos los modulos de pygame
@@ -9,7 +13,8 @@ from chordsGraph import *
 pygame.init()
 
 #va a ser nuestra superficie 
-display = pygame.display.set_mode((480,320)) #Resolucion de la ventana
+xy_display = (480, 320)
+display = pygame.display.set_mode(xy_display) #Resolucion de la ventana
 
 pygame.display.set_caption('Armonizador musical') #titulo de la ventana 
 
@@ -29,7 +34,7 @@ smallfont = pygame.font.SysFont(None,25)
 mediumfont = pygame.font.SysFont(None,30)
 bigfont = pygame.font.SysFont(None,75)
 
-
+graph = None
 
 #Estilo de los textos
 def textObjects(text,color,size):
@@ -65,23 +70,34 @@ def buttonActions(msg):
 	if msg == "Exit":
 		pygame.quit()
 		quit()
-	if msg == "Create new graph":
-		prueba = Graph(0,"prueba.txt")
-        #print("--------------------------------")
-		prueba.training("cancion.txt")
-        #prueba.print_graph()
-		prueba.save_graph_to_json()
+	if msg == "Create new graph":		
+		create_graph_display()
 	if msg == "Create a song":
-		create_song()
-	if msg == "Choose graph":
-		prueba = Graph(1, "classical.json")
-		prueba.print_graph()
+		create_song_base_note()
+	if msg == "Choose graph":		
+		select_graph_display()
 	if msg == "Training":
-		print(msg)
+		training_count()			
 	if msg == "Return":
 		init()
 		
+def draw_menu_display():
+	display.fill(myColor)
+	
+	#imagen
+	display.blit(image,(150,0))
+	
+	#Uso de draw  eje x, eje y, largo, altura
+	
+	#Codigo de posiciones de los textos
+	textToButton("Create new graph",white,150,100,200,75)
+	textToButton("Create a song",white,150,150,200,75)
+	textToButton("Choose graph",white,150,200,200,75)
+	textToButton("Training",white,150,250,200,75)
+	textToButton("Exit",white,340,272,200,75)
 
+	#Aplica los cambios realizados en el fondo
+	pygame.display.update()
 
 #metodo de inicializacion 
 def init():
@@ -103,9 +119,10 @@ def init():
 
 	#Aplica los cambios realizados en el fondo
 	pygame.display.update()
+
+	#grafo
 	
 	time.sleep(0.25)
-	
 	mainloop = True
 	while mainloop:
 	
@@ -119,14 +136,87 @@ def init():
 		button("Choose graph",150,200,200,75)
 		button("Training",150,250,200,75)
 		button("Exit",340,272,200,75)
+
+def create_graph_display():
+
+	global graph
+	time.sleep(0.25)
+	input_graph_name = '' 	
+	mainloop = True
+	while mainloop:
 	
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				mainloop = False
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_BACKSPACE:
+					input_graph_name = input_graph_name[:-1]
+				elif event.key == pygame.K_RETURN:
+					#Aqui se llama el metodo que recomienda -------------
+					graph = Graph(0, input_graph_name)
+					graph.save_graph_to_json()
+					text = "Graph '" + input_graph_name + "' created!" 
+					show_text = smallfont.render(text, 1,white)
+					display.blit(show_text,(150,100))
+					pygame.display.update()
+					time.sleep(2)	
+					init()			
+				else:
+					input_graph_name += event.unicode
+
+		display.fill(myColor)
+		show_input_chord = smallfont.render(input_graph_name, 1,white)
+		display.blit(show_input_chord,(342,50))
+		text = "Write the graph name or genre: "
+		show_text = smallfont.render(text, 1,white)
+		display.blit(show_text,(100,0))
+		textToButton("Return",white,340,272,200,75)
+		button("Return",340,272,200,75)
+		pygame.display.update()
+
+
+
+def select_graph_display():
+
+	global graph
+	time.sleep(0.25)
+	input_graph_name = '' 	
+	mainloop = True
+	while mainloop:
+	
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				mainloop = False
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_BACKSPACE:
+					input_graph_name = input_graph_name[:-1]
+				elif event.key == pygame.K_RETURN:
+
+					graph = Graph(1, input_graph_name, input_graph_name)
+					text = "Graph '" + input_graph_name + "' loaded!" 
+					show_text = smallfont.render(text, 1, white)
+					display.blit(show_text,(150,100))
+					pygame.display.update()
+					time.sleep(2)
+					init()
+				else:
+					input_graph_name += event.unicode
+
+		display.fill(myColor)
+		show_graph_name = smallfont.render(input_graph_name, 1,white)
+		display.blit(show_graph_name,(342,50))
+		text = "Write the graph name you want to select: "
+		show_text = smallfont.render(text, 1,white)
+		display.blit(show_text,(100,0))
+		textToButton("Return",white,340,272,200,75)
+		button("Return",340,272,200,75)
+		pygame.display.update()
 		
 #Inicializa el fondo y aplica los valores para mostrar la ventana general	
-def create_song():
+def create_song_base_note():
 
-	helper_text = "Write your base chord: "
-	input_base_chord = '' 
 	time.sleep(0.25)
+	input_base_chord = '' 	
 	mainloop = True
 	while mainloop:
 	
@@ -137,8 +227,8 @@ def create_song():
 				if event.key == pygame.K_BACKSPACE:
 					input_base_chord = input_base_chord[:-1]
 				elif event.key == pygame.K_RETURN:
-					#Aqui se llama el metodo que recomienda -------------
-					song_recomend_screen()
+					#Aqui se llama el metodo que recomienda -------------													
+					create_song_length(input_base_chord)
 					#print("Enter")
 				else:
 					input_base_chord += event.unicode
@@ -153,16 +243,65 @@ def create_song():
 		button("Return",340,272,200,75)
 		pygame.display.update()
 
+def create_song_length(base_chord):
 
-def song_recomend_screen():
+	global graph
+	time.sleep(0.25)
+	input_song_length = '' 
+	mainloop = True
+	while mainloop:
+	
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				mainloop = False
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_BACKSPACE:
+					input_song_length = input_song_length[:-1]
+				elif event.key == pygame.K_RETURN:
+					#Aqui se llama el metodo que recomienda -------------													
+					song_recomend_screen(graph.create_song(int(input_song_length), base_chord))
+					#print("Enter")
+				else:
+					input_song_length += event.unicode
+
+		display.fill(myColor)
+		show_input_length = smallfont.render(input_song_length, 1,white)
+		display.blit(show_input_length,(342,0))
+		text = "Write the length of the song: "
+		show_text = smallfont.render(text, 1,white)
+		display.blit(show_text,(100,0))
+		textToButton("Return",white,340,272,200,75)
+		button("Return",340,272,200,75)
+		pygame.display.update()
+
+def song_recomend_screen(new_song):
+
+	time.sleep(0.25)
 	display.fill(myColor)
 
 	textToButton("Return",white,340,272,200,75)
 
 	#ejemplo de como se puede poner una variable en pantalla
-	test = 415
-	text = smallfont.render("Text: " + str(test), 1,white)
-	display.blit(text,(225,0)) #permite desplegar e la pos que se le indique en el parametro
+	song_text = ""
+
+	for i in range(len(new_song)):
+		if(i != len(new_song) - 1):
+			song_text += get_chord_name(new_song[i]) + ", "
+		else:
+			song_text += get_chord_name(new_song[i]) 
+
+	show_song = smallfont.render("Song:", 1,white)
+	display.blit(show_song,(225,0)) #permite desplegar e la pos que se le indique en el parametro
+
+	song_text_wrapped = textwrap.fill(song_text, 50)
+	song_split = song_text_wrapped.split("\n")
+
+	line_height = 50
+	for line in song_split:
+		show_line = smallfont.render(line, 1, white)
+		display.blit(show_line,(25,line_height))
+		
+		line_height+=25
 
 	pygame.display.update()
 
@@ -175,9 +314,69 @@ def song_recomend_screen():
 
 		button("Return",340,272,200,75)
 
-def training():
-    pass
+def training_count():
+	time.sleep(0.25)
+	input_training_count = '' 	
+	mainloop = True
+	while mainloop:
 	
-	
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				mainloop = False
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_BACKSPACE:
+					input_training_count = input_training_count[:-1]
+				elif event.key == pygame.K_RETURN:
+					#Aqui se llama el metodo que recomienda -------------													
+					training_display(int(input_training_count))
+					draw_menu_display()	
+					return
+					#print("Enter")
+				else:
+					input_training_count += event.unicode
+
+		display.fill(myColor)
+		show_input_length = smallfont.render(input_training_count, 1,white)
+		display.blit(show_input_length,(342,50))
+		text = "Write the amount of training iterations: "
+		show_text = smallfont.render(text, 1,white)
+		display.blit(show_text,(100,0))
+		textToButton("Return",white,340,272,200,75)
+		button("Return",340,272,200,75)
+		pygame.display.update()
+
+def training_display(count):
+	time.sleep(0.25)
+	current_iteration = 1
+	reader = TextSongReader()
+	song_list = reader.read_dir()
+	while current_iteration <= count:
+
+		display.fill(myColor)
+		text = "Iteration count: "
+		show_text = smallfont.render(text, 1,white)
+		display.blit(show_text,(100,0))
+
+		display.fill(myColor)
+		text = str(current_iteration)
+		show_text = bigfont.render(text, 1,white)
+		display.blit(show_text,(200,50))
+
+		pygame.display.update()
+
+		for song in song_list:
+			song = convert_song('C:/Users/Marco/Desktop/UCR/I Semestre 2020/Inteligencia Artificial/Proyecto/Canciones/TXT Acordes/Clásica/' + song, 'C', '', True)
+			graph.training(song)
+
+		current_iteration += 1
+
+	text = "Finished! Going back in 3..2..1"
+	graph.save_graph_to_json()
+	show_text = mediumfont.render(text, 1, white)
+	display.blit(show_text,(100,100))
+	pygame.display.update()
+	time.sleep(3)
+	init()	
+
 #llama a la funcion que inicializa todo el programa 	
 init()
