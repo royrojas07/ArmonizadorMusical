@@ -84,15 +84,13 @@ class ScaleConversor:
     def convert( self, song ):
         chord_list = []
         song_base_note = song[0]
-        #chord_sequence_str = song[1:]
-        chord_sequence_str = song[:]
+        chord_sequence_str = song[1:]
 
         for chord in chord_sequence_str:
             #if chord[0].upper() in self.notes:
             if chord[0].upper() in self.notes and len( chord ) > 0:
                 chord_list.append( Chord( chord ) )
 
-        
         if song_base_note != self.base_note: # otherwise conversion is not necessary
             return self.convert_chord_sequence( song_base_note, chord_list )
 

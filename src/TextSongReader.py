@@ -45,13 +45,6 @@ class TextSongReader:
         return splitted_string
 
     def read_dir (self, song_dir_name = default_dir_linux):
-        """
-        Splits a string by some delimiters
-        @type song_dir_name: str
-        @param song_dir_name: directory of files
-        @rtype: list
-        @return: list of files in dir
-        """ 
         file_list = []
         for root, directories, files in os.walk(song_dir_name):
             print('Found directory: %s' % root)
