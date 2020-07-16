@@ -32,9 +32,6 @@ default_conversion_table = {
     24:22, #'m7b5
     25:25, #aug
     26:25 #aug7
-
-
-
 }
 
 def convert_chord (chord_name_str, conversion_file = ''):
@@ -84,10 +81,7 @@ def convert_song (song_file_name, base_note = 'C',conversion_file = '', id_optio
     returned_song = []
     
     #le cambia la escala a la cancion 
-    converted_scale_song = []
-    converted_song = scale_conv.convert(song_content)
-    for chord in converted_song:
-        converted_scale_song.append(str(chord))
+    converted_scale_song = scale_conv.convert(song_content)
 
     for chord in converted_scale_song:
         if is_chord_valid(chord):
@@ -96,5 +90,6 @@ def convert_song (song_file_name, base_note = 'C',conversion_file = '', id_optio
                 returned_song.append(converted_chord)
             else:
                 returned_song = converted_scale_song
+                break
 
     return returned_song

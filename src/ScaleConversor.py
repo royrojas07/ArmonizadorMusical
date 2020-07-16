@@ -46,8 +46,6 @@ class Chord:
         value = 0
         if chord[0].upper() in self.root_notes:
             if ( len( chord ) > 1 ) and ( chord[1].lower() in ['#', 'b'] ):
-                #chord_upper = chord[0:2]
-                #value = self.root_notes_values[chord[0:2]]
                 value = self.root_notes_values[chord[0].upper() + chord[1]]
             else:
                 value = self.root_notes_values[chord[0].upper()]
@@ -73,8 +71,7 @@ class Chord:
         return ( self.value == other_chord.value ) and ( self.name == other_chord.name )
     
     def __str__( self ):
-        #return "(%s, %d)" % ( self.name, self.value )
-        return "%s" % ( self.name)
+        return "%s" % (self.name)
 
 class ScaleConversor:
     def __init__( self, base_note ):
@@ -87,18 +84,16 @@ class ScaleConversor:
         chord_sequence_str = song[1:]
 
         for chord in chord_sequence_str:
-            #if chord[0].upper() in self.notes:
-            if chord[0].upper() in self.notes and len( chord ) > 0:
+            if chord[0].upper() in self.notes:
                 chord_list.append( Chord( chord ) )
-
-        if song_base_note != self.base_note: # otherwise conversion is not necessary
+        
+        if song_base_note != self.base_note:
             return self.convert_chord_sequence( song_base_note, chord_list )
-
-        return chord_list
+        return chord_sequence_str
     
     def convert_chord_sequence( self, base_note, sequence ):
         converted_chord_sequence = []
         bases_difference = Chord( base_note ).get_value() - Chord( self.base_note ).get_value()
         for chord in sequence:
-            converted_chord_sequence.append( chord - bases_difference )
+            converted_chord_sequence.append( str( chord - bases_difference ) )
         return converted_chord_sequence

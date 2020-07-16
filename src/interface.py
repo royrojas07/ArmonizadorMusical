@@ -335,7 +335,7 @@ def select_graph_display():
 				elif event.key == pygame.K_RETURN:
 
 					graph = Graph(1, input_graph_name, input_graph_name)
-					graph.print_graph()
+					#graph.print_graph()
 					text = "Graph '" + input_graph_name + "' loaded!" 
 					show_text = smallfont.render(text, 1, white)
 					display.blit(show_text,(150,100))
@@ -536,8 +536,9 @@ def training_display(count):
 
 		random.shuffle(song_list)
 		for song in song_list:
-			song = convert_song('TXT Acordes/Clásica/' + song, 'C', '', True)			
-			graph.training(song)
+			c_song = convert_song('TXT Acordes/Clásica/' + song, 'C', '', True)
+			print(song, c_song)
+			graph.training(c_song)
 
 		current_iteration += 1
 

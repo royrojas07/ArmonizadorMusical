@@ -115,7 +115,6 @@ class Graph:
         
         while ((not first_note_found) and counter < len(self.graph[SINGLE])):
             if self.graph[SINGLE][counter].get_chord() == song[0]: # get the starting node
-                
                 current_node = self.graph[SINGLE][counter]
                 first_note_found = True
             counter += 1
