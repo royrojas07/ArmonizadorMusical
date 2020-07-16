@@ -1,7 +1,9 @@
 #librerias que se importan
-import pygame 
+from pygame import mixer
+import pygame
 import time
 import textwrap
+import sys,os
 from chordsGraph import *
 from ChordsId import *
 from TextSongReader import *
@@ -11,6 +13,8 @@ from SongConversor import *
 #inicializa todos los modulos de pygame
 #retorna si la inicializacion fue exitosa o no 
 pygame.init()
+APP_FOLDER = os.path.dirname(os.path.realpath(sys.argv[0]))
+mixer.init()
 
 #va a ser nuestra superficie 
 xy_display = (480, 320)
@@ -35,6 +39,114 @@ mediumfont = pygame.font.SysFont(None,30)
 bigfont = pygame.font.SysFont(None,75)
 
 graph = None
+new_song = None
+index = None
+auto_play = False
+
+
+
+Notes_Sound_Files = {
+    0:'c.ogg',
+    1:'c#.ogg', 
+    2:'d.ogg',
+    3:'d#.ogg',
+    4:'e.ogg', 
+    5:'f.ogg', 
+    6:'f#.ogg', 
+    7:'g.ogg',
+    8:'g#.ogg',
+    9:'a.ogg',
+    10:'a#.ogg', 
+    11:'b.ogg',
+}
+
+Chord_Individual_Notes = {
+    '':[0,4,7],
+    'm':[0,3,7],
+    '7':[0,4,7,10],
+    'm7':[0,3,7,10],
+    'maj7':[0,4,7,11],
+    'mm7':[0,3,7,11],
+    '6':[0,4,7,9],
+    'm6':[0,3,7,9],
+    '6/9':[0,2,4,7,9],
+    '5':[0,7],
+    '9':[0,2,4,7,10],
+    'm9':[0,2,3,7,10],
+    'maj9':[0,2,4,7,11],
+    '11':[0,2,4,5,7,10],
+    'm11':[0,2,3,5,7,10],
+    '13':[0,2,4,5,7,9,10],
+    'm13':[0,2,3,5,7,9,10],
+    'maj13':[0,2,4,7,9,11],
+    'add':[0,2,4,7],
+    '7-5':[0,4,6,10],
+    '7+5':[0,4,8,10],
+    'sus':[0,5,7],
+    'dim':[0,3,6],
+    'dim7':[0,3,6,9],
+    'm7b5':[0,3,6,10],
+    'aug':[0,4,8],
+    'aug7':[0,4,8,10]
+}
+
+Note_Displacement = {
+    'B#':0,
+    'C':0, 
+    'C#':1, 
+    'Db':1, 
+    'D':2, 
+    'D#':3, 
+    'Eb':3,
+    'E':4,
+    'Fb':4,
+    'E#':5, 
+    'F':5, 
+    'F#':6, 
+    'Gb':6, 
+    'G':7, 
+    'G#':8, 
+    'Ab':8, 
+    'A':9, 
+    'A#':10, 
+    'Bb':10, 
+    'B':11,
+    'Cb':11
+}
+
+def play_chord (chord_str):
+
+    base_note = ''
+    chord_variation = ''
+    #Este if y else determina si el acorde es valido
+    if len( chord_str ) > 0:
+        if (len( chord_str ) > 1 ) and ( chord_str[1] in ['#', 'b']) :
+            base_note = chord_str[0].upper() + chord_str[1]
+
+            if len( chord_str ) > 2:
+                chord_variation = chord_str[2:].lower()
+        else: 
+            base_note = chord_str[0].upper()
+            if len( chord_str ) > 1:
+                chord_variation = chord_str[1:].lower()
+
+
+
+    notes = Chord_Individual_Notes[chord_variation]
+    
+    #Carga primero los sonidos
+    index = 0
+    sounds = []
+    for note in notes:
+        displaced_note = ((note + Note_Displacement[base_note])) % 12
+        sounds.append(mixer.Sound(os.path.join(APP_FOLDER, 'Sounds/' + Notes_Sound_Files[displaced_note])))
+
+    #Despues los toca
+    for sound in sounds:
+        sound.play()
+
+    #Delay entre las notas  
+    #time.delay(1000)
 
 #Estilo de los textos
 def textObjects(text,color,size):
@@ -67,6 +179,9 @@ def label(msg,color,size,x,y):
 		
 #Acciones de los diferentes botones, cada uno lleva a la funcion definida
 def buttonActions(msg):
+	global index
+	global new_song
+	global auto_play
 	if msg == "Exit":
 		pygame.quit()
 		quit()
@@ -77,7 +192,34 @@ def buttonActions(msg):
 	if msg == "Choose graph":		
 		select_graph_display()
 	if msg == "Training":
-		training_count()			
+		training_count()
+	if msg == "Play":
+		play_chord (get_chord_name(new_song[index]))
+	if msg == "Auto Play":
+		auto_play = True
+		index = 0
+		for i in range(len(new_song)):
+			song_recomend_screen()
+			time.sleep(0.7)
+			index += 1
+		auto_play = False
+	if msg == "Begin":
+		index = 0
+		song_recomend_screen()
+	if msg == "Reset":
+		create_song_base_note()
+	if msg == "Next":
+		if index + 1 == len(new_song):
+			print("Se excedio del lenght de la cancion")
+		else:
+			index += 1
+		song_recomend_screen()
+	if msg == "Prev":
+		if index - 1 < 0:
+			print("Se excedio del lenght de la cancion")
+		else:
+			index -= 1
+		song_recomend_screen()
 	if msg == "Return":
 		init()
 		
@@ -177,7 +319,6 @@ def create_graph_display():
 
 
 def select_graph_display():
-
 	global graph
 	time.sleep(0.25)
 	input_graph_name = '' 	
@@ -214,7 +355,6 @@ def select_graph_display():
 		
 #Inicializa el fondo y aplica los valores para mostrar la ventana general	
 def create_song_base_note():
-
 	time.sleep(0.25)
 	input_base_chord = '' 	
 	mainloop = True
@@ -244,8 +384,9 @@ def create_song_base_note():
 		pygame.display.update()
 
 def create_song_length(base_chord):
-
 	global graph
+	global new_song
+	global index 
 	time.sleep(0.25)
 	input_song_length = '' 
 	mainloop = True
@@ -258,8 +399,10 @@ def create_song_length(base_chord):
 				if event.key == pygame.K_BACKSPACE:
 					input_song_length = input_song_length[:-1]
 				elif event.key == pygame.K_RETURN:
-					#Aqui se llama el metodo que recomienda -------------													
-					song_recomend_screen(graph.create_song(int(input_song_length), base_chord))
+					#Aqui se llama el metodo que recomienda -------------
+					new_song = graph.create_song(int(input_song_length), base_chord)	
+					index = 0											
+					song_recomend_screen()
 					#print("Enter")
 				else:
 					input_song_length += event.unicode
@@ -274,45 +417,69 @@ def create_song_length(base_chord):
 		button("Return",340,272,200,75)
 		pygame.display.update()
 
-def song_recomend_screen(new_song):
-
+def song_recomend_screen():
+	global index
+	global new_song
+	global auto_play
 	time.sleep(0.25)
 	display.fill(myColor)
 
+
+	#Dibujos de los triangulos
+	pygame.draw.polygon(display,orange,((400,100),(460,150),(400,200)))
+	pygame.draw.polygon(display,orange,((80,100),(20,150),(80,200)))
+
+	pygame.draw.polygon(display,orange,((225,80),(255,100),(225,120)))
+	pygame.draw.polygon(display,orange,((245,80),(275,100),(245,120)))
+
+	#Uso de draw  eje x, eje y, largo, altura
+	textToButton("Play",white,150,225,200,75)
+	textToButton("Auto Play",white,150,65,200,75)
+	textToButton("Next",white,325,112,200,75)
+	textToButton("Prev",white,-40,112,200,75)
+	textToButton("Reset",white,0,225,200,75)
+	textToButton("Begin",white,300,225,200,75)
 	textToButton("Return",white,340,272,200,75)
 
-	#ejemplo de como se puede poner una variable en pantalla
-	song_text = ""
-
-	for i in range(len(new_song)):
-		if(i != len(new_song) - 1):
-			song_text += get_chord_name(new_song[i]) + ", "
-		else:
-			song_text += get_chord_name(new_song[i]) 
-
-	show_song = smallfont.render("Song:", 1,white)
+	
+	
+	show_song = smallfont.render("Song",1,white)
 	display.blit(show_song,(225,0)) #permite desplegar e la pos que se le indique en el parametro
 
-	song_text_wrapped = textwrap.fill(song_text, 50)
-	song_split = song_text_wrapped.split("\n")
+	line_x = 25
+	for i in range(len(new_song)):
+		if(i == index):
+			show_line = smallfont.render(get_chord_name(new_song[i]), 1, orange)
+		else:
+			show_line = smallfont.render(get_chord_name(new_song[i]), 1, white)
+		display.blit(show_line,(line_x,50))
+		if(i != len(new_song) - 1):
+			show_separator = smallfont.render("|", 1, white)
+			display.blit(show_separator,(line_x + 15,50))
+		line_x +=25
 
-	line_height = 50
-	for line in song_split:
-		show_line = smallfont.render(line, 1, white)
-		display.blit(show_line,(25,line_height))
-		
-		line_height+=25
+
+	show_chord = bigfont.render(get_chord_name(new_song[index]),250,white)
+	display.blit(show_chord,(230,120))
 
 	pygame.display.update()
+	if not auto_play:
+		mainloop = True
+		while mainloop:
+		
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					mainloop = False
 
-	mainloop = True
-	while mainloop:
-	
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				mainloop = False
-
-		button("Return",340,272,200,75)
+			button("Play",150,225,200,75)
+			button("Auto Play",150,65,200,75)
+			button("Next",325,112,200,75)
+			button("Prev",-40,112,200,75)
+			button("Reset",0,225,200,75)
+			button("Begin",300,225,200,75)
+			button("Return",340,272,200,75)
+	else:
+		play_chord(get_chord_name(new_song[index]))
 
 def training_count():
 	time.sleep(0.25)
