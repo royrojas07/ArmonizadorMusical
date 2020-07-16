@@ -370,7 +370,7 @@ def create_song_base_note():
 					input_base_chord = input_base_chord[:-1]
 				elif event.key == pygame.K_RETURN:
 					#Aqui se llama el metodo que recomienda -------------													
-					create_song_length(input_base_chord)
+					create_song_first_note(input_base_chord)
 					#print("Enter")
 				else:
 					input_base_chord += event.unicode
@@ -385,7 +385,36 @@ def create_song_base_note():
 		button("Return",340,272,200,75)
 		pygame.display.update()
 
-def create_song_length(base_chord):
+def create_song_first_note(base_note):
+	time.sleep(0.25)
+	input_first_note = '' 	
+	mainloop = True
+	while mainloop:
+	
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				mainloop = False
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_BACKSPACE:
+					input_first_note = input_base_chord[:-1]
+				elif event.key == pygame.K_RETURN:
+					#Aqui se llama el metodo que recomienda -------------													
+					create_song_length(base_note, input_first_note)
+					#print("Enter")
+				else:
+					input_first_note += event.unicode
+
+		display.fill(myColor)
+		show_input_chord = smallfont.render(input_first_note, 1,white)
+		display.blit(show_input_chord,(342,0))
+		text = "Write the first note: "
+		show_text = smallfont.render(text, 1,white)
+		display.blit(show_text,(150,0))
+		textToButton("Return",white,340,272,200,75)
+		button("Return",340,272,200,75)
+		pygame.display.update()
+
+def create_song_length(base_note, first_note):
 	global graph
 	global new_song
 	global index 
@@ -402,7 +431,7 @@ def create_song_length(base_chord):
 					input_song_length = input_song_length[:-1]
 				elif event.key == pygame.K_RETURN:
 					#Aqui se llama el metodo que recomienda -------------
-					new_song = graph.create_song(int(input_song_length), base_chord)	
+					new_song = graph.create_song(int(input_song_length), first_note)	
 					index = 0											
 					song_recomend_screen()
 					#print("Enter")
@@ -537,7 +566,7 @@ def training_display(count):
 		random.shuffle(song_list)
 		for song in song_list:
 			c_song = convert_song('TXT Acordes/Clásica/' + song, 'C', '', True)
-			print(song, c_song)
+			#print(song, c_song)
 			graph.training(c_song)
 
 		current_iteration += 1

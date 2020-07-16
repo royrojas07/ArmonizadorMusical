@@ -77,11 +77,12 @@ class Graph:
         inserted_ids = []
         single_nodes = [] # lista de nodos simples
         for note in Chord_Notes.keys():
-            chord_id = convert_chord(note)
-            if chord_id not in inserted_ids:
-                single_nodes.append(Node(chord_id, SINGLE))
-                inserted_ids.append(chord_id)
-        self.graph[0] = single_nodes
+            for variation in Chord_Variations.keys():
+                chord_id = convert_chord(note+variation)
+                if chord_id not in inserted_ids:
+                    single_nodes.append(Node(chord_id, SINGLE))
+                    inserted_ids.append(chord_id)
+            self.graph[0] = single_nodes
 
         """
         inserted_ids = []
