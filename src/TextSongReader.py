@@ -1,6 +1,6 @@
 import os    
 
-default_dir_linux = './Canciones/TXT Acordes/Clásica/'
+default_dir_linux = 'TXT Acordes/Clásica/'
 default_dir_windows = ''
 
 class TextSongReader:

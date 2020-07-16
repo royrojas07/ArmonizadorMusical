@@ -2,6 +2,7 @@ import sys
 import json
 import random
 import math
+import time
 from SongConversor import *
 from TextSongReader import *
 
@@ -80,8 +81,9 @@ class Graph:
             if chord_id not in inserted_ids:
                 single_nodes.append(Node(chord_id, SINGLE))
                 inserted_ids.append(chord_id)
-        self.graph.append(single_nodes)
+        self.graph[0] = single_nodes
 
+        """
         inserted_ids = []
         chords = [] # lista de acordes
         for note in Chord_Notes.keys():
@@ -95,22 +97,25 @@ class Graph:
         for chord1 in self.graph[SINGLE]:
             for chord2 in chords:
                 double_nodes.append(Node((chord1.get_chord(), chord2), DOUBLE))
-        self.graph.append(double_nodes)
+        self.graph[1] = double_nodes
 
         triple_nodes = [] # lista de nodos triples
         for chord1 in chords:
             for chord2 in chords:
                 for chord3 in chords:
                     triple_nodes.append(Node((chord1, chord2, chord3), TRIPLE))
-        self.graph.append(triple_nodes)
+        self.graph[2] = triple_nodes
+        """
 
     def training(self, song):
         current_node = None
 
         first_note_found = False
         counter = 0
+        
         while ((not first_note_found) and counter < len(self.graph[SINGLE])):
             if self.graph[SINGLE][counter].get_chord() == song[0]: # get the starting node
+                
                 current_node = self.graph[SINGLE][counter]
                 first_note_found = True
             counter += 1
@@ -131,20 +136,41 @@ class Graph:
             if next_node == None:
                 e = None
                 if current_node.type == SINGLE:
+                    found = False
                     for double in self.graph[DOUBLE]:
-                        if double.get_chord() == (song[i-1], song[i])
+                        if double.get_chord() == (song[i-1], song[i]):
                             e = Edge(current_node, double)
                             current_node.add_neighbor(e)
                             e.selected_up()
                             next_node = e.destiny
+                            found = True
+
+                    if(not found):
+                        new_node = Node((song[i-1], song[i]), DOUBLE)
+                        self.graph[DOUBLE].append(new_node)
+                        e = Edge(current_node, new_node)
+                        current_node.add_neighbor(e)
+                        e.selected_up()
+                        next_node = e.destiny
                 else:
+                    found = False 
                     for triple in self.graph[TRIPLE]:
                         if triple.get_chord() == (song[i-2],
-                                song[i-1], song[i])
+                                song[i-1], song[i]):
                             e = Edge(current_node, triple)
                             current_node.add_neighbor(e)
                             e.selected_up()
                             next_node = e.destiny
+                            found = True
+
+                    if(not found):
+                        new_node = Node((song[i-2], song[i-1], song[i]), TRIPLE)
+                        self.graph[TRIPLE].append(new_node)
+                        e = Edge(current_node, new_node)
+                        current_node.add_neighbor(e)
+                        e.selected_up()
+                        next_node = e.destiny
+
                 e.set_probability(round(e.selected_count / current_node.selected_count, 5))
             current_node = next_node
 
@@ -176,9 +202,9 @@ class Graph:
 
             if(len(neighbors) == 0):
                 if(current_node.type == SINGLE):
-                    current_node = graph[DOUBLE][random.randint(0, len(graph[DOUBLE]-1))]
+                    current_node = self.graph[DOUBLE][random.randint(0, len(self.graph[DOUBLE])-1)]
                 else:
-                    current_node = graph[TRIPLE][random.randint(0, len(graph[TRIPLE]-1))]
+                    current_node = self.graph[TRIPLE][random.randint(0, len(self.graph[TRIPLE])-1)]
             else:
                 for i in range(len(neighbors)):
                     if( abs(neighbors[i].get_probability() - decision_probability) < abs(closest_option[0] - decision_probability)):
@@ -199,6 +225,7 @@ class Graph:
 
     def  save_graph_to_json(self):
         graph_container = []
+
         for node_group in self.graph:
             for node in node_group:
                 neighbor_data = {}
@@ -225,7 +252,7 @@ class Graph:
         try:
             json_file = open(filename, "r")
         except:
-            print("Can't open the especified file.")
+            print("Can't open the specified file.")
             return 
 
         graph_container = json.loads(json_file.readline())
@@ -270,19 +297,18 @@ class Graph:
         for k in range(3):
             if(k == SINGLE):
                 for i in range(len(self.graph[SINGLE])): #Reconnecting singles to doubles
-                    current_node_neighbors = graph_container[counter][1].keys()
-                    for j in range(len(current_node_neighbors)):
+                    for key in graph_container[counter][1].keys():
 
                         #Find the double node to connect to
                         node_to_connect = None
                         found_key = None
                         found = False
                         node_counter = 0
-                        while((not found) and (node_counter < len(current_node_neighbors))):
-                            if(str(self.graph[DOUBLE][node_counter].get_chord()) == current_node_neighbors[j]):
+                        while((not found) and (node_counter < len(self.graph[DOUBLE]))):
+                            if(str(self.graph[DOUBLE][node_counter].get_chord()) == key):
                                 found = True
                                 node_to_connect = self.graph[DOUBLE][node_counter]
-                                found_key = current_node_neighbors[j]
+                                found_key = key
                             node_counter +=1
 
                         if(found):
@@ -291,21 +317,20 @@ class Graph:
                             new_Edge.set_selected_count(graph_container[counter][1][found_key][1])
                             self.graph[SINGLE][i].add_neighbor(new_Edge)
                     counter +=1
-            if(k == DOUBLE):
+            elif(k == DOUBLE):
                 for i in range(len(self.graph[DOUBLE])): #Reconnecting doubles to triples
-                    current_node_neighbors = graph_container[counter][1].keys()
-                    for j in range(len(current_node_neighbors)):
+                    for key in graph_container[counter][1].keys():
 
                         #Find the triple node to connect to
                         node_to_connect = None
                         found_key = None
                         found = False
                         node_counter = 0
-                        while((not found) and (node_counter < len(current_node_neighbors))):
-                            if(str(self.graph[TRIPLE][node_counter].get_chord()) == current_node_neighbors[j]):
+                        while((not found) and (node_counter < len(self.graph[TRIPLE]))):
+                            if(str(self.graph[TRIPLE][node_counter].get_chord()) == key):
                                 found = True
                                 node_to_connect = self.graph[TRIPLE][node_counter]
-                                found_key = current_node_neighbors[j]
+                                found_key = key
                             node_counter +=1
 
                         if(found):
@@ -316,19 +341,18 @@ class Graph:
                     counter +=1
             else:
                 for i in range(len(self.graph[TRIPLE])): #Reconnecting triples to triples
-                    current_node_neighbors = graph_container[counter][1].keys()
-                    for j in range(len(current_node_neighbors)):
+                    for key in graph_container[counter][1].keys():
 
                         #Find the triple node to connect to
                         node_to_connect = None
                         found_key = None
                         found = False
                         node_counter = 0
-                        while((not found) and (node_counter < len(current_node_neighbors))):
-                            if(str(self.graph[TRIPLE][node_counter].get_chord()) == current_node_neighbors[j]):
+                        while((not found) and (node_counter < len(self.graph[TRIPLE]))):
+                            if(str(self.graph[TRIPLE][node_counter].get_chord()) == key):
                                 found = True
                                 node_to_connect = self.graph[TRIPLE][node_counter]
-                                found_key = current_node_neighbors[j]
+                                found_key = key
                             node_counter +=1
 
                         if(found):

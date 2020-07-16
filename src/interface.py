@@ -4,6 +4,7 @@ import pygame
 import time
 import textwrap
 import sys,os
+import random
 from chordsGraph import *
 from ChordsId import *
 from TextSongReader import *
@@ -334,6 +335,7 @@ def select_graph_display():
 				elif event.key == pygame.K_RETURN:
 
 					graph = Graph(1, input_graph_name, input_graph_name)
+					graph.print_graph()
 					text = "Graph '" + input_graph_name + "' loaded!" 
 					show_text = smallfont.render(text, 1, white)
 					display.blit(show_text,(150,100))
@@ -496,7 +498,7 @@ def training_count():
 				elif event.key == pygame.K_RETURN:
 					#Aqui se llama el metodo que recomienda -------------													
 					training_display(int(input_training_count))
-					draw_menu_display()	
+					#draw_menu_display()	
 					return
 					#print("Enter")
 				else:
@@ -513,6 +515,7 @@ def training_count():
 		pygame.display.update()
 
 def training_display(count):
+	global graph
 	time.sleep(0.25)
 	current_iteration = 1
 	reader = TextSongReader()
@@ -531,8 +534,9 @@ def training_display(count):
 
 		pygame.display.update()
 
+		random.shuffle(song_list)
 		for song in song_list:
-			song = convert_song('C:/Users/Marco/Desktop/UCR/I Semestre 2020/Inteligencia Artificial/Proyecto/Canciones/TXT Acordes/Clásica/' + song, 'C', '', True)
+			song = convert_song('TXT Acordes/Clásica/' + song, 'C', '', True)			
 			graph.training(song)
 
 		current_iteration += 1
