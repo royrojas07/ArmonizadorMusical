@@ -1,14 +1,20 @@
+import sys
 import json
 import random
 import math
 from SongConversor import *
 from TextSongReader import *
 
+SINGLE = 0
+DOUBLE = 1
+TRIPLE = 2
+
 class Node:
-    def __init__(self,chord): 
+    def __init__(self,chord,node_type): 
         self.chord = chord
         self.selected_count = 0
         self.neighbors = []
+        self.type = node_type
 
     def get_chord(self):
         return self.chord
@@ -24,6 +30,9 @@ class Node:
 
     def set_selected_count(self, count):
         self.selected_count = count
+
+    def get_type(self):
+        return self.type
 
 class Edge:
     def __init__(self,nodeA,nodeB):
@@ -65,30 +74,45 @@ class Graph:
 
     #crearia el grafo a partir de los IDs en el archivo de ChordsId
     def create_graph(self):
-        
         inserted_ids = []
+        single_nodes = [] # lista de nodos simples
+        for note in Chord_Notes.keys():
+            chord_id = convert_chord(note)
+            if chord_id not in inserted_ids:
+                single_nodes.append(Node(chord_id, SINGLE))
+                inserted_ids.append(chord_id)
+        self.graph.append(single_nodes)
+
+        inserted_ids = []
+        chords = [] # lista de acordes
         for note in Chord_Notes.keys():
             for variation in Chord_Variations.keys():
-                complete_note = note + variation
-                if(convert_chord(complete_note) not in inserted_ids):
-                    node = Node(convert_chord(complete_note))
-                    self.graph.append(node)
-                    inserted_ids.append(convert_chord(complete_note))
-        
-        #cada nodo esta unido con el resto de los acordes
-        for nodeA in self.graph:
-            for nodeB in self.graph:
-                edge = Edge(nodeA,nodeB)
-                nodeA.add_neighbor(edge)
+                chord_id = convert_chord(note+variation)
+                if chord_id not in inserted_ids:
+                    chords.append(chord_id)
+                    inserted_ids.append(chord_id)
+
+        double_nodes = [] # lista de nodos dobles
+        for chord1 in self.graph[SINGLE]:
+            for chord2 in chords:
+                double_nodes.append(Node((chord1.get_chord(), chord2), DOUBLE))
+        self.graph.append(double_nodes)
+
+        triple_nodes = [] # lista de nodos triples
+        for chord1 in chords:
+            for chord2 in chords:
+                for chord3 in chords:
+                    triple_nodes.append(Node((chord1, chord2, chord3), TRIPLE))
+        self.graph.append(triple_nodes)
 
     def training(self, song):
         current_node = None
 
         first_note_found = False
         counter = 0
-        while ((not first_note_found) and counter < len(self.graph)):
-            if(self.graph[counter].get_chord() == song[0]): # get the starting node
-                current_node = self.graph[counter]
+        while ((not first_note_found) and counter < len(self.graph[SINGLE])):
+            if self.graph[SINGLE][counter].get_chord() == song[0]: # get the starting node
+                current_node = self.graph[SINGLE][counter]
                 first_note_found = True
             counter += 1
 
@@ -96,12 +120,33 @@ class Graph:
             next_node = None
             current_node.selected_up()
             for edge in current_node.get_neighbors():
-                if(edge.destiny.get_chord() == song[i]):
-                    edge.selected_up()
-                    next_node = edge.destiny
-            
+                if current_node.type == SINGLE:
+                    if edge.destiny.get_chord() == (song[i-1], song[i]):
+                        edge.selected_up()
+                        next_node = edge.destiny
+                else: # nodo doble o triple
+                    if edge.destiny.get_chord() == (song[i-2], song[i-1], song[i]):
+                        edge.selected_up()
+                        next_node = edge.destiny
                 edge.set_probability(round(edge.selected_count / current_node.selected_count, 5))
-
+            if next_node == None:
+                e = None
+                if current_node.type == SINGLE:
+                    for double in self.graph[DOUBLE]:
+                        if double.get_chord() == (song[i-1], song[i])
+                            e = Edge(current_node, double)
+                            current_node.add_neighbor(e)
+                            e.selected_up()
+                            next_node = e.destiny
+                else:
+                    for triple in self.graph[TRIPLE]:
+                        if triple.get_chord() == (song[i-2],
+                                song[i-1], song[i])
+                            e = Edge(current_node, triple)
+                            current_node.add_neighbor(e)
+                            e.selected_up()
+                            next_node = e.destiny
+                e.set_probability(round(e.selected_count / current_node.selected_count, 5))
             current_node = next_node
 
     def create_song(self, song_length, first_note):
@@ -214,3 +259,5 @@ for i in range(len(new_song_id)):
 
 print(new_song_string)
 """
+nGraph = Graph(0,0)
+print(sys.getsizeof(nGraph.graph))
