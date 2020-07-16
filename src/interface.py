@@ -509,7 +509,7 @@ def song_recomend_screen():
 	elif(index > tope / 2 and len(new_song) > tope):
 		base += 1
 		tope += 1
-	elif(index == base and base > 0):
+	elif(index < base and base > 0):
 		base -= 1
 		tope -= 1
 	for i in range(base,tope):
