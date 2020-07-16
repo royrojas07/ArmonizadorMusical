@@ -450,12 +450,10 @@ def create_song_length(base_note, first_chord):
 					# Se ajusta primer acorde a escala de entrenamiento
 					chord = str(Chord(first_chord) - bases_diff)
 					#Aqui se llama el metodo que recomienda -------------
-					new_song = graph.create_song(int(input_song_length), chord)	
-					print('en C:', new_song)
+					new_song = graph.create_song(int(input_song_length), chord)
 					new_song = [get_chord_name(id) for id in new_song]
-					new_song = ScaleConversor(DEFAULT_BASE_NOTE).convert_chord_sequence(
-							base_note, [Chord(c) for c in new_song])
-					print(f'en {base_note}:', new_song)
+					new_song = ScaleConversor(base_note).convert_chord_sequence(
+							DEFAULT_BASE_NOTE, [Chord(c) for c in new_song])
 					index = 0											
 					song_recomend_screen()
 					#print("Enter")
