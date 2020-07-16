@@ -1,0 +1,1 @@
+C,C,F,C,G,G7,F,C,Am,C,Em,F,C,Am,D7,G,Em7,C,D7,C,Adim7,Cdim,Em,G,D,Em,C,Em,C,G,Am,G,Em,C,G,Em,C,G,Em7,G,Em7,D7,G,Cmaj7,Am,Cdim,C,Bm7,G,Bm7,G,Cdim,D7,G,G7,G,Fm,G#dim,Gm,A,D7,Cm,Ddim,F,C,Cdim,C#dim,C,F,C,G,G7,C,Am7,Am,Am7,G,C,Em,C,G,C,F#dim,D7,G7,F,G7,C,Bdim7,Am,C,F,Dm,C,G,C,Bdim,C,Am7,C,G7,C,Am7,C,G,Am7,F,Fmaj7,Bdim,F,Fm
