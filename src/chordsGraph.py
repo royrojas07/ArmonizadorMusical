@@ -83,7 +83,7 @@ class Graph:
                     single_nodes.append(Node(chord_id, SINGLE))
                     inserted_ids.append(chord_id)
             self.graph[0] = single_nodes
-
+        print("grap size", len(self.graph[0]))
         """
         inserted_ids = []
         chords = [] # lista de acordes
@@ -144,6 +144,7 @@ class Graph:
                             e.selected_up()
                             next_node = e.destiny
                             found = True
+                            break
 
                     if(not found):
                         new_node = Node((song[i-1], song[i]), DOUBLE)
@@ -162,6 +163,7 @@ class Graph:
                             e.selected_up()
                             next_node = e.destiny
                             found = True
+                            break
 
                     if(not found):
                         new_node = Node((song[i-2], song[i-1], song[i]), TRIPLE)
@@ -180,6 +182,7 @@ class Graph:
         for node in self.graph[SINGLE]:
             if(first_note_id == node.get_chord()):
                 current_node = node
+                break
 
         new_song = []
         for i in range(song_length):
