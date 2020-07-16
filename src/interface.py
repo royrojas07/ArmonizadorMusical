@@ -9,7 +9,9 @@ from chordsGraph import *
 from ChordsId import *
 from TextSongReader import *
 from SongConversor import *
+from ScaleConversor import *
 
+DEFAULT_BASE_NOTE = 'C'
 
 #inicializa todos los modulos de pygame
 #retorna si la inicializacion fue exitosa o no 
@@ -43,8 +45,9 @@ graph = None
 new_song = None
 index = None
 auto_play = False
-
-
+cursor = 0
+base = 0
+tope = 6
 
 Notes_Sound_Files = {
     0:'c.ogg',
@@ -136,7 +139,6 @@ def play_chord (chord_str):
     notes = Chord_Individual_Notes[chord_variation]
     
     #Carga primero los sonidos
-    index = 0
     sounds = []
     for note in notes:
         displaced_note = ((note + Note_Displacement[base_note])) % 12
@@ -183,31 +185,44 @@ def buttonActions(msg):
 	global index
 	global new_song
 	global auto_play
+	global tope
+	global base 
 	if msg == "Exit":
 		pygame.quit()
 		quit()
 	if msg == "Create new graph":		
 		create_graph_display()
 	if msg == "Create a song":
+		tope = 6
+		base = 0
+		index = 0
 		create_song_base_note()
 	if msg == "Choose graph":		
 		select_graph_display()
 	if msg == "Training":
 		training_count()
 	if msg == "Play":
-		play_chord (get_chord_name(new_song[index]))
+		play_chord (new_song[index])
 	if msg == "Auto Play":
 		auto_play = True
+		tope = 6
+		base = 0
 		index = 0
 		for i in range(len(new_song)):
 			song_recomend_screen()
 			time.sleep(0.7)
 			index += 1
+		index = len(new_song) - 1
 		auto_play = False
 	if msg == "Begin":
+		tope = 6
+		base = 0
 		index = 0
 		song_recomend_screen()
 	if msg == "Reset":
+		tope = 6
+		base = 0
+		index = 0
 		create_song_base_note()
 	if msg == "Next":
 		if index + 1 == len(new_song):
@@ -414,7 +429,7 @@ def create_song_first_note(base_note):
 		button("Return",340,272,200,75)
 		pygame.display.update()
 
-def create_song_length(base_note, first_note):
+def create_song_length(base_note, first_chord):
 	global graph
 	global new_song
 	global index 
@@ -430,8 +445,15 @@ def create_song_length(base_note, first_note):
 				if event.key == pygame.K_BACKSPACE:
 					input_song_length = input_song_length[:-1]
 				elif event.key == pygame.K_RETURN:
+					# Se obtiene la diferencia entre notas base
+					bases_diff = Chord(base_note).get_value() - Chord(DEFAULT_BASE_NOTE).get_value()
+					# Se ajusta primer acorde a escala de entrenamiento
+					chord = str(Chord(first_chord) - bases_diff)
 					#Aqui se llama el metodo que recomienda -------------
-					new_song = graph.create_song(int(input_song_length), first_note)	
+					new_song = graph.create_song(int(input_song_length), chord)
+					new_song = [get_chord_name(id) for id in new_song]
+					new_song = ScaleConversor(base_note).convert_chord_sequence(
+							DEFAULT_BASE_NOTE, [Chord(c) for c in new_song])
 					index = 0											
 					song_recomend_screen()
 					#print("Enter")
@@ -452,6 +474,8 @@ def song_recomend_screen():
 	global index
 	global new_song
 	global auto_play
+	global tope
+	global base 
 	time.sleep(0.25)
 	display.fill(myColor)
 
@@ -478,19 +502,27 @@ def song_recomend_screen():
 	display.blit(show_song,(225,0)) #permite desplegar e la pos que se le indique en el parametro
 
 	line_x = 25
-	for i in range(len(new_song)):
+	if(len(new_song) < 6):
+		tope = len(new_song)
+	elif(index > tope / 2 and len(new_song) > tope):
+		base += 1
+		tope += 1
+	elif(index < base and base > 0):
+		base -= 1
+		tope -= 1
+	for i in range(base,tope):
 		if(i == index):
-			show_line = smallfont.render(get_chord_name(new_song[i]), 1, orange)
+			show_line = smallfont.render(new_song[i], 1, orange)
 		else:
-			show_line = smallfont.render(get_chord_name(new_song[i]), 1, white)
+			show_line = smallfont.render(new_song[i], 1, white)
 		display.blit(show_line,(line_x,50))
 		if(i != len(new_song) - 1):
 			show_separator = smallfont.render("|", 1, white)
-			display.blit(show_separator,(line_x + 15,50))
-		line_x +=25
+			display.blit(show_separator,(line_x + 60,50))
+		line_x +=75
 
 
-	show_chord = bigfont.render(get_chord_name(new_song[index]),250,white)
+	show_chord = bigfont.render(new_song[index],250,white)
 	display.blit(show_chord,(230,120))
 
 	pygame.display.update()
@@ -510,7 +542,7 @@ def song_recomend_screen():
 			button("Begin",300,225,200,75)
 			button("Return",340,272,200,75)
 	else:
-		play_chord(get_chord_name(new_song[index]))
+		play_chord(new_song[index])
 
 def training_count():
 	time.sleep(0.25)
@@ -565,7 +597,7 @@ def training_display(count):
 
 		random.shuffle(song_list)
 		for song in song_list:
-			c_song = convert_song('TXT Acordes/Clásica/' + song, 'C', '', True)
+			c_song = convert_song('TXT Acordes/Clásica/' + song, DEFAULT_BASE_NOTE, '', True)
 			#print(song, c_song)
 			graph.training(c_song)
 
