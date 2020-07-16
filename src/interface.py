@@ -43,8 +43,9 @@ graph = None
 new_song = None
 index = None
 auto_play = False
-
-
+cursor = 0
+base = 0
+tope = 6
 
 Notes_Sound_Files = {
     0:'c.ogg',
@@ -136,7 +137,6 @@ def play_chord (chord_str):
     notes = Chord_Individual_Notes[chord_variation]
     
     #Carga primero los sonidos
-    index = 0
     sounds = []
     for note in notes:
         displaced_note = ((note + Note_Displacement[base_note])) % 12
@@ -452,6 +452,8 @@ def song_recomend_screen():
 	global index
 	global new_song
 	global auto_play
+	global tope
+	global base 
 	time.sleep(0.25)
 	display.fill(myColor)
 
@@ -478,7 +480,13 @@ def song_recomend_screen():
 	display.blit(show_song,(225,0)) #permite desplegar e la pos que se le indique en el parametro
 
 	line_x = 25
-	for i in range(len(new_song)):
+	if(index > tope / 2 and len(new_song) > tope):
+		base += 1
+		tope += 1
+	elif(index == base and base > 0):
+		base -= 1
+		tope -= 1
+	for i in range(base,tope):
 		if(i == index):
 			show_line = smallfont.render(get_chord_name(new_song[i]), 1, orange)
 		else:
@@ -486,8 +494,8 @@ def song_recomend_screen():
 		display.blit(show_line,(line_x,50))
 		if(i != len(new_song) - 1):
 			show_separator = smallfont.render("|", 1, white)
-			display.blit(show_separator,(line_x + 15,50))
-		line_x +=25
+			display.blit(show_separator,(line_x + 60,50))
+		line_x +=75
 
 
 	show_chord = bigfont.render(get_chord_name(new_song[index]),250,white)
