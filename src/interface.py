@@ -183,12 +183,17 @@ def buttonActions(msg):
 	global index
 	global new_song
 	global auto_play
+	global tope
+	global base 
 	if msg == "Exit":
 		pygame.quit()
 		quit()
 	if msg == "Create new graph":		
 		create_graph_display()
 	if msg == "Create a song":
+		tope = 6
+		base = 0
+		index = 0
 		create_song_base_note()
 	if msg == "Choose graph":		
 		select_graph_display()
@@ -198,16 +203,24 @@ def buttonActions(msg):
 		play_chord (get_chord_name(new_song[index]))
 	if msg == "Auto Play":
 		auto_play = True
+		tope = 6
+		base = 0
 		index = 0
 		for i in range(len(new_song)):
 			song_recomend_screen()
 			time.sleep(0.7)
 			index += 1
+		index = len(new_song) - 1
 		auto_play = False
 	if msg == "Begin":
+		tope = 6
+		base = 0
 		index = 0
 		song_recomend_screen()
 	if msg == "Reset":
+		tope = 6
+		base = 0
+		index = 0
 		create_song_base_note()
 	if msg == "Next":
 		if index + 1 == len(new_song):
@@ -480,7 +493,9 @@ def song_recomend_screen():
 	display.blit(show_song,(225,0)) #permite desplegar e la pos que se le indique en el parametro
 
 	line_x = 25
-	if(index > tope / 2 and len(new_song) > tope):
+	if(len(new_song) < 6):
+		tope = len(new_song)
+	elif(index > tope / 2 and len(new_song) > tope):
 		base += 1
 		tope += 1
 	elif(index == base and base > 0):
