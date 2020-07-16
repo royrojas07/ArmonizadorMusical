@@ -5,10 +5,11 @@ from SongConversor import *
 from TextSongReader import *
 
 class Node:
-    def __init__(self,chord): 
+    def __init__(self,chord,node_type): 
         self.chord = chord
         self.selected_count = 0
         self.neighbors = []
+        self.type = node_type
 
     def get_chord(self):
         return self.chord
@@ -52,8 +53,7 @@ class Edge:
 
 class Graph:
     def __init__(self, gen_type, genre, filename = ""):
-        self.graph = []
-        self.chords = []
+        self.graph = [[],[],[]]
         self.genre = genre
 
         if(gen_type == 0): #Creado desde 0, un buevo grafo 
@@ -107,43 +107,61 @@ class Graph:
     def create_song(self, song_length, first_note):
         current_node = None
         first_note_id = convert_chord(first_note)
-        for node in self.graph:
+        for node in self.graph[SINGLE]:
             if(first_note_id == node.get_chord()):
                 current_node = node
 
         new_song = []
         for i in range(song_length):
-            new_song.append(current_node.get_chord())
+            chord_to_add = None
+
+            if(current_node.type == SINGLE): #Single node
+                chord_to_add = current_node.get_chord()
+            elif(current_node.type == DOUBLE): #Double node
+                chord_to_add = current_node.get_chord()[1]
+            else: #Triple node
+                chord_to_add = current_node.get_chord()[2]
+
+            new_song.append(chord_to_add)
 
             decision_probability = random.random()
             closest_option = (math.inf,0)
 
-            neighbors = current_node.get_neighbors()
-            for i in range(len(neighbors)):
-                if( abs(neighbors[i].get_probability() - decision_probability) < abs(closest_option[0] - decision_probability)):
-                    closest_option = (neighbors[i].get_probability(), i)
 
-            current_node = neighbors[closest_option[1]].get_destiny()
+            neighbors = current_node.get_neighbors()
+
+            if(len(neighbors) == 0):
+                if(current_node.type == SINGLE):
+                    current_node = graph[DOUBLE][random.randint(0, len(graph[DOUBLE]-1))]
+                else:
+                    current_node = graph[TRIPLE][random.randint(0, len(graph[TRIPLE]-1))]
+            else:
+                for i in range(len(neighbors)):
+                    if( abs(neighbors[i].get_probability() - decision_probability) < abs(closest_option[0] - decision_probability)):
+                        closest_option = (neighbors[i].get_probability(), i)
+
+                current_node = neighbors[closest_option[1]].get_destiny()
 
         return new_song
 
-
-
     def print_graph(self):
-        for nodes in self.graph:
-            print("Nodo: ", nodes.get_chord(), "  Selected: ", nodes.selected_count)
-            for edge in nodes.get_neighbors():
-                print("    Edge to: ",edge.get_destiny().get_chord(), "  Weight: ", edge.get_probability(), "  Selected: ", edge.selected_count)
+        for node_group in self.graph:
+            for node in node_group:
+                print("---------------------------------------------------------------")
+                print("Nodo: ", node.get_chord(), "  Selected: ", node.selected_count)
+                for edge in node.get_neighbors():
+                    print("    Edge to: ",edge.get_destiny().get_chord(), "  Weight: ", edge.get_probability(), "  Selected: ", edge.selected_count)
 
 
     def  save_graph_to_json(self):
         graph_container = []
-        for node in self.graph:
-            neighbor_data = {}
-            for edge in node.get_neighbors():
-                neighbor_data[int(edge.get_destiny().get_chord())] = [edge.get_probability(), edge.selected_count]
+        for node_group in self.graph:
+            for node in node_group:
+                neighbor_data = {}
+                for edge in node.get_neighbors():
+                    neighbor_data[str(edge.get_destiny().get_chord())] = [edge.get_probability(), edge.selected_count]
 
-            graph_container.append([[node.get_chord(),node.selected_count], neighbor_data])
+                graph_container.append([[node.get_chord(),node.selected_count,node.type], neighbor_data])
 
         json_file = None
         try:
@@ -170,47 +188,108 @@ class Graph:
 
         json_file.close();
 
+        node_content = [[],[],[]]
         
+        #Extract the node IDs from the file data
         for listitem in graph_container:
+            if(listitem[0][2] == SINGLE):
+                node_content[SINGLE].append(listitem[0][0])
+            elif(listitem[0][2] == DOUBLE):
+                node_content[DOUBLE].append(tuple(listitem[0][0]))
+            else:
+                node_content[TRIPLE].append(tuple(listitem[0][0]))
 
-            self.chords.append(listitem[0][0])
-
+        #Create the nodes from the extracted data in the file
         counter = 0
-        for chord in self.chords:
-            node = Node(chord)
-            node.set_selected_count( graph_container[counter][0][1])
-            self.graph.append(node)
-            counter +=1
+        for i in range(3):
+            if(i == SINGLE):
+                for content in node_content[SINGLE]:
+                    node = Node(content, SINGLE)
+                    node.set_selected_count(graph_container[counter][0][1])
+                    self.graph[SINGLE].append(node)
+                    counter +=1
+            elif(i == DOUBLE):
+                for content in node_content[DOUBLE]:
+                    node = Node(content, DOUBLE)
+                    node.set_selected_count(graph_container[counter][0][1])
+                    self.graph[DOUBLE].append(node)
+                    counter +=1  
+            else:
+                for content in node_content[TRIPLE]:
+                    node = Node(content, TRIPLE)
+                    node.set_selected_count(graph_container[counter][0][1])
+                    self.graph[TRIPLE].append(node)
+                    counter +=1        
 
-        
-        for i in range(len(self.graph)):
+        #Restore the connections 
+        counter = 0
+        for k in range(3):
+            if(k == SINGLE):
+                for i in range(len(self.graph[SINGLE])): #Reconnecting singles to doubles
+                    current_node_neighbors = graph_container[counter][1].keys()
+                    for j in range(len(current_node_neighbors)):
 
-            for j in range(len(self.graph)):
+                        #Find the double node to connect to
+                        node_to_connect = None
+                        found_key = None
+                        found = False
+                        node_counter = 0
+                        while((not found) and (node_counter < len(current_node_neighbors))):
+                            if(str(self.graph[DOUBLE][node_counter].get_chord()) == current_node_neighbors[j]):
+                                found = True
+                                node_to_connect = self.graph[DOUBLE][node_counter]
+                                found_key = current_node_neighbors[j]
+                            node_counter +=1
 
-                new_Edge = Edge(self.graph[i], self.graph[j])
-                new_Edge.set_probability(graph_container[i][1][str(self.graph[j].get_chord())][0])
-                new_Edge.set_selected_count(graph_container[i][1][str(self.graph[j].get_chord())][1])
-                self.graph[i].add_neighbor(new_Edge)
+                        if(found):
+                            new_Edge = Edge(self.graph[SINGLE][i], node_to_connect)
+                            new_Edge.set_probability(graph_container[counter][1][found_key][0])
+                            new_Edge.set_selected_count(graph_container[counter][1][found_key][1])
+                            self.graph[SINGLE][i].add_neighbor(new_Edge)
+                    counter +=1
+            if(k == DOUBLE):
+                for i in range(len(self.graph[DOUBLE])): #Reconnecting doubles to triples
+                    current_node_neighbors = graph_container[counter][1].keys()
+                    for j in range(len(current_node_neighbors)):
 
-"""        
-newGraph = Graph(0)
-#newGraph.print_graph()
-reader = TextSongReader()
+                        #Find the triple node to connect to
+                        node_to_connect = None
+                        found_key = None
+                        found = False
+                        node_counter = 0
+                        while((not found) and (node_counter < len(current_node_neighbors))):
+                            if(str(self.graph[TRIPLE][node_counter].get_chord()) == current_node_neighbors[j]):
+                                found = True
+                                node_to_connect = self.graph[TRIPLE][node_counter]
+                                found_key = current_node_neighbors[j]
+                            node_counter +=1
 
+                        if(found):
+                            new_Edge = Edge(self.graph[DOUBLE][i], node_to_connect)
+                            new_Edge.set_probability(graph_container[counter][1][found_key][0])
+                            new_Edge.set_selected_count(graph_container[counter][1][found_key][1])
+                            self.graph[DOUBLE][i].add_neighbor(new_Edge)
+                    counter +=1
+            else:
+                for i in range(len(self.graph[TRIPLE])): #Reconnecting triples to triples
+                    current_node_neighbors = graph_container[counter][1].keys()
+                    for j in range(len(current_node_neighbors)):
 
-song_list = reader.read_dir()
-for train_count in range (5000):
-    random.shuffle(song_list)
-    for songs in song_list:
-        song = convert_song('C:/Users/Marco/Desktop/UCR/I Semestre 2020/Inteligencia Artificial/Proyecto/Canciones/TXT Acordes/Clásica/' + songs, 'C', '', True)
-        newGraph.training(song)
+                        #Find the triple node to connect to
+                        node_to_connect = None
+                        found_key = None
+                        found = False
+                        node_counter = 0
+                        while((not found) and (node_counter < len(current_node_neighbors))):
+                            if(str(self.graph[TRIPLE][node_counter].get_chord()) == current_node_neighbors[j]):
+                                found = True
+                                node_to_connect = self.graph[TRIPLE][node_counter]
+                                found_key = current_node_neighbors[j]
+                            node_counter +=1
 
-new_song_id = newGraph.create_song(50, "C")
-print(new_song_id)
-
-new_song_string = []
-for i in range(len(new_song_id)):
-    new_song_string.append(get_chord_name(new_song_id[i]))
-
-print(new_song_string)
-"""
+                        if(found):
+                            new_Edge = Edge(self.graph[TRIPLE][i], node_to_connect)
+                            new_Edge.set_probability(graph_container[counter][1][found_key][0])
+                            new_Edge.set_selected_count(graph_container[counter][1][found_key][1])
+                            self.graph[TRIPLE][i].add_neighbor(new_Edge)
+                    counter +=1
