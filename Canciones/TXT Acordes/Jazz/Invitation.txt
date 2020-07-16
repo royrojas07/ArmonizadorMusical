@@ -1,0 +1,1 @@
+A#,F#maj7,G#m6,C#m9,Dmaj7,Cmaj7,G#m6,F#maj7,G#m,Ebmaj7,F#maj7,C#m9,Dmaj7,Cmaj7,Bbmaj7,C#9,Eb,Ebmaj7,F#maj7,C#,Cm9,Ebmaj7,Gm,G#dim,F#maj7,C#m9,Dmaj7,Cmaj7,Am9,Cmaj7,Bbmaj7,G#m6,Ebmaj7,G#dim,F#,C#9,Ebmaj7,F#maj7,F#,F#maj7,Emaj7,Cmaj7,Bbmaj7,G#m,Adim,F#maj7,G#m,F#maj7,G#m6,Emaj7,Dmaj7,C,Cmaj7,Bbmaj7,Ebm7,F#maj7,Bbm7,F#maj7,C#m9,Dmaj7,F#m,Dmaj7,Cmaj7,Ebmaj7,F#maj7

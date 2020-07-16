@@ -1,0 +1,1 @@
+F,Fmaj7,Bbm6,Dm7,Bbm6,Dm7,Cmaj7,Fmaj7,Bbm6,Dm7,Bbm6,Dm7,Cmaj7,Fmaj7,Bbm6,Dm7,Bbm6,Dm7,Cmaj7,Fmaj7,Ebmaj7,Bbmaj7,Am7,Dm7,Am,Bbmaj7,Am7,Fmaj7,Dm,Dm9,Am7,F,Cmaj7,Dm7,Dm9,Fmaj7,Dm9,Ebmaj7,Gm9,Dm7,Eb9,G,Em7,Fmaj7,Dm7,Cm9,Am,Am7,Bbm6,F,Am,Bbm6,Fmaj7,Am7,C,Fmaj7,Dm7,F,Gdim,Cmaj7,Bbmaj7,Dm6
