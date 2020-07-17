@@ -66,7 +66,6 @@ class Graph:
         self.genre = genre
 
         if(gen_type == 0): #Creado desde 0, un buevo grafo 
-
             self.create_graph()  #llamaria al metodo create
 
         else:   #Cargar un grafo ya creado de un archivo JSON
@@ -83,30 +82,6 @@ class Graph:
                     single_nodes.append(Node(chord_id, SINGLE))
                     inserted_ids.append(chord_id)
             self.graph[0] = single_nodes
-        print("grap size", len(self.graph[0]))
-        """
-        inserted_ids = []
-        chords = [] # lista de acordes
-        for note in Chord_Notes.keys():
-            for variation in Chord_Variations.keys():
-                chord_id = convert_chord(note+variation)
-                if chord_id not in inserted_ids:
-                    chords.append(chord_id)
-                    inserted_ids.append(chord_id)
-
-        double_nodes = [] # lista de nodos dobles
-        for chord1 in self.graph[SINGLE]:
-            for chord2 in chords:
-                double_nodes.append(Node((chord1.get_chord(), chord2), DOUBLE))
-        self.graph[1] = double_nodes
-
-        triple_nodes = [] # lista de nodos triples
-        for chord1 in chords:
-            for chord2 in chords:
-                for chord3 in chords:
-                    triple_nodes.append(Node((chord1, chord2, chord3), TRIPLE))
-        self.graph[2] = triple_nodes
-        """
 
     def training(self, song):
         current_node = None
@@ -197,9 +172,11 @@ class Graph:
 
             new_song.append(chord_to_add)
 
+            if(len(self.graph[DOUBLE]) == 0):
+                return new_song
+
             decision_probability = random.random()
             closest_option = (math.inf,0)
-
 
             neighbors = current_node.get_neighbors()
 
@@ -241,7 +218,7 @@ class Graph:
         try:
             json_file = open(self.genre + ".json", "w")
         except:
-            print("Can't open the specified file.")
+            print("Can't open the specified file.")            
             return
 
         json_file.write(json.dumps(graph_container))
@@ -256,6 +233,7 @@ class Graph:
             json_file = open(filename, "r")
         except:
             print("Can't open the specified file.")
+            self.graph = None
             return 
 
         graph_container = json.loads(json_file.readline())

@@ -58,7 +58,7 @@ def convert_chord (chord_name_str, conversion_file = ''):
     return converted_id
 
 
-def convert_song (song_file_name, base_note = 'C',conversion_file = '', id_option = False):
+def convert_song (song_file_name, folder_name, base_note = 'C',conversion_file = '', id_option = False):
 
     """
     converts chord depending on the conversion table
@@ -72,7 +72,7 @@ def convert_song (song_file_name, base_note = 'C',conversion_file = '', id_optio
     @return: converted song
     """
     returned_song = None
-    songReader = TextSongReader()
+    songReader = TextSongReader(folder_name)
     scale_conv = ScaleConversor(base_note)
 
     #obtiene el contenido de la cancion

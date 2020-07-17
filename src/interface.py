@@ -118,6 +118,12 @@ Note_Displacement = {
     'Cb':11
 }
 
+chord_variation_list = []
+
+for note in Chord_Notes.keys():
+	for variation in Chord_Variations.keys():
+		chord_variation_list.append(note + variation)
+
 def play_chord (chord_str):
 
     base_note = ''
@@ -186,21 +192,30 @@ def buttonActions(msg):
 	global new_song
 	global auto_play
 	global tope
-	global base 
+	global base
+	global graph
 	if msg == "Exit":
 		pygame.quit()
 		quit()
 	if msg == "Create new graph":		
 		create_graph_display()
 	if msg == "Create a song":
-		tope = 6
-		base = 0
-		index = 0
-		create_song_base_note()
+		if graph == None:
+			print("No graph has been selected yet")
+			time.sleep(0.25)
+		else:
+			tope = 6
+			base = 0
+			index = 0
+			create_song_base_note()
 	if msg == "Choose graph":		
 		select_graph_display()
 	if msg == "Training":
-		training_count()
+		if graph == None:
+			print("No graph has been selected yet")
+			time.sleep(0.25)
+		else:
+			training_count()
 	if msg == "Play":
 		play_chord (new_song[index])
 	if msg == "Auto Play":
@@ -337,7 +352,7 @@ def create_graph_display():
 def select_graph_display():
 	global graph
 	time.sleep(0.25)
-	input_graph_name = '' 	
+	input_graph_name = ''	
 	mainloop = True
 	while mainloop:
 	
@@ -350,8 +365,10 @@ def select_graph_display():
 				elif event.key == pygame.K_RETURN:
 
 					graph = Graph(1, input_graph_name, input_graph_name)
-					#graph.print_graph()
-					text = "Graph '" + input_graph_name + "' loaded!" 
+					if(graph.graph == None):
+						text = "The specified graph doesn't exist" 
+					else:
+						text = "Graph '" + input_graph_name + "' loaded!" 
 					show_text = smallfont.render(text, 1, white)
 					display.blit(show_text,(150,100))
 					pygame.display.update()
@@ -384,16 +401,22 @@ def create_song_base_note():
 				if event.key == pygame.K_BACKSPACE:
 					input_base_chord = input_base_chord[:-1]
 				elif event.key == pygame.K_RETURN:
-					#Aqui se llama el metodo que recomienda -------------													
-					create_song_first_note(input_base_chord)
-					#print("Enter")
+					if(input_base_chord in Chord_Notes.keys()):
+						create_song_first_note(input_base_chord)
+					else:
+						text = "Not a valid base note"
+						show_text = smallfont.render(text, 1, white)
+						display.blit(show_text,(150,100))
+						pygame.display.update()
+						input_base_chord = ''
+						time.sleep(1)
 				else:
 					input_base_chord += event.unicode
 
 		display.fill(myColor)
 		show_input_chord = smallfont.render(input_base_chord, 1,white)
 		display.blit(show_input_chord,(342,0))
-		text = "Write your base chord: "
+		text = "Write the base note: "
 		show_text = smallfont.render(text, 1,white)
 		display.blit(show_text,(150,0))
 		textToButton("Return",white,340,272,200,75)
@@ -402,7 +425,7 @@ def create_song_base_note():
 
 def create_song_first_note(base_note):
 	time.sleep(0.25)
-	input_first_note = '' 	
+	input_first_chord = '' 	
 	mainloop = True
 	while mainloop:
 	
@@ -411,18 +434,24 @@ def create_song_first_note(base_note):
 				mainloop = False
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_BACKSPACE:
-					input_first_note = input_base_chord[:-1]
-				elif event.key == pygame.K_RETURN:
-					#Aqui se llama el metodo que recomienda -------------													
-					create_song_length(base_note, input_first_note)
-					#print("Enter")
+					input_first_chord = input_first_chord[:-1]
+				elif event.key == pygame.K_RETURN:																	
+					if(input_first_chord in chord_variation_list):
+						create_song_length(base_note, input_first_chord)
+					else:
+						text = "Not a valid chord variation"
+						show_text = smallfont.render(text, 1, white)
+						display.blit(show_text,(150,100))
+						pygame.display.update()
+						input_first_chord = ''
+						time.sleep(1)
 				else:
-					input_first_note += event.unicode
+					input_first_chord += event.unicode
 
 		display.fill(myColor)
-		show_input_chord = smallfont.render(input_first_note, 1,white)
+		show_input_chord = smallfont.render(input_first_chord, 1,white)
 		display.blit(show_input_chord,(342,0))
-		text = "Write the first note: "
+		text = "Write the first chord: "
 		show_text = smallfont.render(text, 1,white)
 		display.blit(show_text,(150,0))
 		textToButton("Return",white,340,272,200,75)
@@ -450,13 +479,20 @@ def create_song_length(base_note, first_chord):
 					# Se ajusta primer acorde a escala de entrenamiento
 					chord = str(Chord(first_chord) - bases_diff)
 					#Aqui se llama el metodo que recomienda -------------
-					new_song = graph.create_song(int(input_song_length), chord)
-					new_song = [get_chord_name(id) for id in new_song]
-					new_song = ScaleConversor(base_note).convert_chord_sequence(
-							DEFAULT_BASE_NOTE, [Chord(c) for c in new_song])
-					index = 0											
-					song_recomend_screen()
-					#print("Enter")
+					try:
+						new_song = graph.create_song(int(input_song_length), chord)
+						new_song = [get_chord_name(id) for id in new_song]
+						new_song = ScaleConversor(base_note).convert_chord_sequence(
+								DEFAULT_BASE_NOTE, [Chord(c) for c in new_song])
+						index = 0
+						song_recomend_screen()
+					except:
+						text = "Please enter a valid number"
+						show_text = smallfont.render(text, 1, white)
+						display.blit(show_text,(150,100))
+						pygame.display.update()
+						input_song_length = ''
+						time.sleep(1)																
 				else:
 					input_song_length += event.unicode
 
@@ -557,11 +593,15 @@ def training_count():
 				if event.key == pygame.K_BACKSPACE:
 					input_training_count = input_training_count[:-1]
 				elif event.key == pygame.K_RETURN:
-					#Aqui se llama el metodo que recomienda -------------													
-					training_display(int(input_training_count))
-					#draw_menu_display()	
-					return
-					#print("Enter")
+					try:												
+						training_folder_name(int(input_training_count))
+					except:
+						text = "Please enter a valid number"
+						show_text = smallfont.render(text, 1, white)
+						display.blit(show_text,(150,100))
+						pygame.display.update()
+						input_training_count = ''
+						time.sleep(1)	
 				else:
 					input_training_count += event.unicode
 
@@ -575,11 +615,49 @@ def training_count():
 		button("Return",340,272,200,75)
 		pygame.display.update()
 
-def training_display(count):
+def training_folder_name(count):
+	time.sleep(0.25)
+	input_training_folder_name = '' 	
+	mainloop = True
+	while mainloop:
+	
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				mainloop = False
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_BACKSPACE:
+					input_training_folder_name = input_training_folder_name[:-1]
+				elif event.key == pygame.K_RETURN:
+					if(os.path.isdir("TXT Acordes/"+input_training_folder_name)):			
+						training_display(count, input_training_folder_name)
+					else:
+						text = "The specified folder doesn't exist in TXT Acordes"
+						show_text = smallfont.render(text, 1, white)
+						display.blit(show_text,(70,100))
+						pygame.display.update()
+						input_training_folder_name = ''
+						time.sleep(1.5)
+				else:
+					input_training_folder_name += event.unicode
+
+		display.fill(myColor)
+		show_input_length = smallfont.render(input_training_folder_name, 1,white)
+		display.blit(show_input_length,(342,50))
+		text = "Write the name of the folder where"
+		show_text = smallfont.render(text, 1,white)
+		display.blit(show_text,(20,0))
+		text = "the songs are located in TXT Acordes: "
+		show_text = smallfont.render(text, 1,white)
+		display.blit(show_text,(20,15))
+		textToButton("Return",white,340,272,200,75)
+		button("Return",340,272,200,75)
+		pygame.display.update()
+
+def training_display(count, folder_name):
 	global graph
 	time.sleep(0.25)
 	current_iteration = 1
-	reader = TextSongReader()
+	reader = TextSongReader(folder_name)
 	song_list = reader.read_dir()
 	while current_iteration <= count:
 
@@ -597,8 +675,7 @@ def training_display(count):
 
 		random.shuffle(song_list)
 		for song in song_list:
-			c_song = convert_song('TXT Acordes/Clásica/' + song, DEFAULT_BASE_NOTE, '', True)
-			#print(song, c_song)
+			c_song = convert_song('TXT Acordes/' + folder_name + "/" + song, folder_name, DEFAULT_BASE_NOTE, '', True)
 			graph.training(c_song)
 
 		current_iteration += 1
